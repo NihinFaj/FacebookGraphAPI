@@ -164,9 +164,7 @@ def connectToFacebook():
 
     return df
 
-# Function to scan eash post message for sustainability keywords
-
-
+# Function to scan each post message for sustainability keywords
 def checkPostForKeywords():
 
     keywordsList = getSustainabilityKeywords()
@@ -189,6 +187,7 @@ def checkPostForKeywords():
             # print("I am Nan")
             continue
 
+        # If not Nan encode and search against the list of keywords
         tw_txtu = individualMsg.encode('utf-8')
         print(tw_txtu)
 
@@ -199,6 +198,7 @@ def checkPostForKeywords():
             termu = keywordsList[term_count].encode('utf-8')
             if termu in tw_txtu:
                 print("I contain a relevant Keyword")
+                
                 break
             else:
                 term_count += 1

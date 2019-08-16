@@ -9,6 +9,8 @@ from openpyxl import load_workbook
 from urllib.parse import urlencode
 import pandas as pd
 from urllib.request import urlopen
+import numpy as np
+import math
 
 # The location of the input file
 filename_root = 'C:/Users/Synergos/OneDrive/Documents/SusMon_Facebook_API'
@@ -65,8 +67,8 @@ def getSustainabilityKeywords():
     keywordList = []
 
     for i in range(1, m_row + 1):
-         cell_obj = kw_sheet.cell(row=i, column=1)
-         keywordList.append(cell_obj.value)
+        cell_obj = kw_sheet.cell(row=i, column=1)
+        keywordList.append(cell_obj.value)
 
     return keywordList
 
@@ -126,43 +128,81 @@ def connectToFacebook():
         data = facebook_connection.read().decode('utf8')
         json_object = json.loads(data)
         posts = json_object["data"]
-        # df = pd.DataFrame(posts)
-        df = posts
+        df = pd.DataFrame(posts)
 
-        df['Angry'] = df['Angry'].astype(str).str.replace('{\'data\':(.*?)count\': ','')
-        df['Angry'] = df['Angry'].str.replace(',(.*?)}}','')
-        df['Haha'] = df['Haha'].astype(str).str.replace('{\'data\':(.*?)count\': ','')
-        df['Haha'] = df['Haha'].str.replace('}}','')
-        df['Love'] = df['Love'].astype(str).str.replace('{\'data\':(.*?)count\': ','')
-        df['Love'] = df['Love'].str.replace('}}','')
-        df['Sad'] = df['Sad'].astype(str).str.replace('{\'data\':(.*?)count\': ','')
-        df['Sad'] = df['Sad'].str.replace(',(.*?)}}','')
-        df['Wow'] = df['Wow'].astype(str).str.replace('{\'data\':(.*?)count\': ','')
-        df['Wow'] = df['Wow'].str.replace('}}','')
-        df['comments'] = df['comments'].astype(str).str.replace('{\'data\':(.*?)count\': ','')
-        df['comments'] = df['comments'].str.replace(',(.*?)}}','')
-        df['likes'] = df['likes'].astype(str).str.replace('{\'(.*?)count\':','')
-        df['likes'] = df['likes'].str.replace(',(.*?)}}','')
-        df['shares'] = df['shares'].astype(str).str.replace('{\'count\': ','')
-        df['shares'] = df['shares'].str.replace('}','')
-        df['date'], df['time'] = df['created_time'].astype(str).str.split('T', 1).str
-        df['time'] = df['time'].str.replace('[+]0000','')
+        df['Angry'] = df['Angry'].astype(str).str.replace(
+            '{\'data\':(.*?)count\': ', '')
+        df['Angry'] = df['Angry'].str.replace(',(.*?)}}', '')
+        df['Haha'] = df['Haha'].astype(str).str.replace(
+            '{\'data\':(.*?)count\': ', '')
+        df['Haha'] = df['Haha'].str.replace('}}', '')
+        df['Love'] = df['Love'].astype(str).str.replace(
+            '{\'data\':(.*?)count\': ', '')
+        df['Love'] = df['Love'].str.replace('}}', '')
+        df['Sad'] = df['Sad'].astype(str).str.replace(
+            '{\'data\':(.*?)count\': ', '')
+        df['Sad'] = df['Sad'].str.replace(',(.*?)}}', '')
+        df['Wow'] = df['Wow'].astype(str).str.replace(
+            '{\'data\':(.*?)count\': ', '')
+        df['Wow'] = df['Wow'].str.replace('}}', '')
+        df['comments'] = df['comments'].astype(
+            str).str.replace('{\'data\':(.*?)count\': ', '')
+        df['comments'] = df['comments'].str.replace(',(.*?)}}', '')
+        df['likes'] = df['likes'].astype(
+            str).str.replace('{\'(.*?)count\':', '')
+        df['likes'] = df['likes'].str.replace(',(.*?)}}', '')
+        df['shares'] = df['shares'].astype(str).str.replace('{\'count\': ', '')
+        df['shares'] = df['shares'].str.replace('}', '')
+        df['date'], df['time'] = df['created_time'].astype(
+            str).str.split('T', 1).str
+        df['time'] = df['time'].str.replace('[+]0000', '')
         df.to_csv("Facebook Posts.csv")
         # print(df)
 
     except Exception as ex:
-        print (ex)
+        print(ex)
 
     return df
 
+# Function to scan eash post message for sustainability keywords
+
+
 def checkPostForKeywords():
 
-    facebookPosts = connectToFacebook()
-    print(json.dumps(facebookPosts))
-    keywords = getSustainabilityKeywords()
+    keywordsList = getSustainabilityKeywords()
     # print(keywords)
-    
-    
+
+    facebookPosts = connectToFacebook()
+    # print(facebookPosts)
+
+    postMessages = dict()
+    postMessages['message'] = facebookPosts['message']
+
+    # Get Total length of keyword list
+    totalNumOfKeywords = len(keywordsList)
+    # print(totalNumOfKeywords)
+
+    for individualMsg in postMessages.get("message"):
+
+        # Check if message is Nan
+        if pd.isnull(individualMsg):
+            # print("I am Nan")
+            continue
+
+        tw_txtu = individualMsg.encode('utf-8')
+        print(tw_txtu)
+
+        term_count = 0
+        while term_count < totalNumOfKeywords:
+
+            # loop through our relevant terms
+            termu = keywordsList[term_count].encode('utf-8')
+            if termu in tw_txtu:
+                print("I contain a relevant Keyword")
+                break
+            else:
+                term_count += 1
+                print("I do not contain the Keyword")
 
 
 def main():
@@ -175,6 +215,7 @@ def main():
 
     # connectToFacebook()
     checkPostForKeywords()
+
 
 if __name__ == '__main__':
     main()

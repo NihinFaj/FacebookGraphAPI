@@ -16,10 +16,9 @@ import math
 filename_root = 'C:/Users/Synergos/OneDrive/Documents/SusMon_Facebook_API'
 input_filename = filename_root + '/FBPage_Input.xlsx'
 keyword_filename = filename_root + '/SusMon_Keywords.xlsx'
+token = ''
 
 # Function that reads Access Token and Page ID from an Excel file
-
-
 def getInputData():
 
     # open the excel input workbook
@@ -116,7 +115,7 @@ def connectToFacebook():
     # accessToken = values.get("accessToken")
 
     token = values.get("accessToken")
-    graph = facebook.GraphAPI(token)
+    # graph = facebook.GraphAPI(token)
     # fields = ['first_name', 'location{location}','email','link']
     # profile = graph.get_object(pageId, fields='name,fan_count,posts,link')
     # return desired fields
@@ -130,60 +129,29 @@ def connectToFacebook():
         posts = json_object["data"]
         df = pd.DataFrame(posts)
 
-    #     df['Angry'] = df['Angry'].astype(str).str.replace(
-    #         '{\'data\':(.*?)count\': ', '')
-    #     df['Angry'] = df['Angry'].str.replace(',(.*?)}}', '')
-    #     df['Haha'] = df['Haha'].astype(str).str.replace(
-    #         '{\'data\':(.*?)count\': ', '')
-    #     df['Haha'] = df['Haha'].str.replace('}}', '')
-    #     df['Love'] = df['Love'].astype(str).str.replace(
-    #         '{\'data\':(.*?)count\': ', '')
-    #     df['Love'] = df['Love'].str.replace('}}', '')
-    #     df['Sad'] = df['Sad'].astype(str).str.replace(
-    #         '{\'data\':(.*?)count\': ', '')
-    #     df['Sad'] = df['Sad'].str.replace(',(.*?)}}', '')
-    #     df['Wow'] = df['Wow'].astype(str).str.replace(
-    #         '{\'data\':(.*?)count\': ', '')
-    #     df['Wow'] = df['Wow'].str.replace('}}', '')
-    #     df['comments'] = df['comments'].astype(
-    #         str).str.replace('{\'data\':(.*?)count\': ', '')
-    #     df['comments'] = df['comments'].str.replace(',(.*?)}}', '')
-    #     df['likes'] = df['likes'].astype(
-    #         str).str.replace('{\'(.*?)count\':', '')
-    #     df['likes'] = df['likes'].str.replace(',(.*?)}}', '')
-    #     df['shares'] = df['shares'].astype(str).str.replace('{\'count\': ', '')
-    #     df['shares'] = df['shares'].str.replace('}', '')
-    #     df['date'], df['time'] = df['created_time'].astype(
-    #         str).str.split('T', 1).str
-    #     df['time'] = df['time'].str.replace('[+]0000', '')
-    #     df.to_csv("Facebook Posts.csv")
-    #     # print(df)
-
     except Exception as ex:
         print(ex)
 
     return df
 
 # Function to scan each post message for sustainability keywords
-
-
 def checkPostForKeywords():
 
     keywordsList = getSustainabilityKeywords()
-    # print(keywords)
 
     facebookPosts = connectToFacebook()
     df = facebookPosts
-    # print(facebookPosts)
-
-    postMessages = dict()
-    postMessages['message'] = facebookPosts['message']
 
     # Get Total length of keyword list
     totalNumOfKeywords = len(keywordsList)
     # print(totalNumOfKeywords)
 
-    for individualMsg in postMessages.get("message"):
+    # loop through all rows of the in the dataframe
+    for index, row in df.iterrows():
+
+        # print(row['id'], row['message'])
+        individualMsg = row['message']
+        individualId = row['id']
 
         # Check if message is Nan
         if pd.isnull(individualMsg):
@@ -192,7 +160,7 @@ def checkPostForKeywords():
 
         # If not Nan encode and search against the list of keywords
         tw_txtu = individualMsg.encode('utf-8')
-        print(tw_txtu)
+        # print(tw_txtu)
 
         term_count = 0
         while term_count < totalNumOfKeywords:
@@ -200,33 +168,61 @@ def checkPostForKeywords():
             # loop through our relevant terms
             termu = keywordsList[term_count].encode('utf-8')
             if termu in tw_txtu:
-                print("I contain a relevant Keyword")
+                # print("I contain a relevant Keyword, and this is my ID " + individualId)
 
-                df['Angry'] = df['Angry'].astype(str).str.replace('{\'data\':(.*?)count\': ', '')
-                df['Angry'] = df['Angry'].str.replace(',(.*?)}}', '')
-                df['Haha'] = df['Haha'].astype(str).str.replace('{\'data\':(.*?)count\': ', '')
-                df['Haha'] = df['Haha'].str.replace('}}', '')
-                df['Love'] = df['Love'].astype(str).str.replace('{\'data\':(.*?)count\': ', '')
-                df['Love'] = df['Love'].str.replace('}}', '')
-                df['Sad'] = df['Sad'].astype(str).str.replace('{\'data\':(.*?)count\': ', '')
-                df['Sad'] = df['Sad'].str.replace(',(.*?)}}', '')
-                df['Wow'] = df['Wow'].astype(str).str.replace('{\'data\':(.*?)count\': ', '')
-                df['Wow'] = df['Wow'].str.replace('}}', '')
-                df['comments'] = df['comments'].astype(str).str.replace('{\'data\':(.*?)count\': ', '')
-                df['comments'] = df['comments'].str.replace(',(.*?)}}', '')
-                df['likes'] = df['likes'].astype(str).str.replace('{\'(.*?)count\':', '')
-                df['likes'] = df['likes'].str.replace(',(.*?)}}', '')
-                df['shares'] = df['shares'].astype(str).str.replace('{\'count\': ', '')
-                df['shares'] = df['shares'].str.replace('}', '')
-                df['date'], df['time'] = df['created_time'].astype(str).str.split('T', 1).str
-                df['time'] = df['time'].str.replace('[+]0000', '')
-                df.to_csv("Facebook Posts.csv")
-
+                # Call function that calls Facebook API with Post ID and save retrieved data into Output Excel file
+                callFacebookAndSaveData(individualId)
                 break
             else:
                 term_count += 1
-                print("I do not contain the Keyword")
+                # print("I do not contain the Keyword")
 
+# Function that calls Facebook API with ID and save retrieved data into Output Excel file
+def callFacebookAndSaveData(individualId):
+
+    print("ID is " + individualId)
+    # Call function to get input data
+    values = getInputData()
+    token = values.get("accessToken")
+    graph = facebook.GraphAPI(token)
+
+    url = "https://graph.facebook.com/v4.0/"+ individualId + "/?fields=id,created_time,message,shares.summary(true).limit(0),comments.summary(true).limit(0),likes.summary(true),reactions.type(LOVE).limit(0).summary(total_count).as(Love),reactions.type(WOW).limit(0).summary(total_count).as(Wow),reactions.type(HAHA).limit(0).summary(total_count).as(Haha),reactions.type(SAD).limit(0).summary(1).as(Sad),reactions.type(ANGRY).limit(0).summary(1).as(Angry)&access_token=" + token + "&limit=50"
+
+    try:
+        facebook_connection = urlopen(url)
+        data = facebook_connection.read().decode('utf8')
+        json_object = json.loads(data)
+        # posts = json_object["data"]
+        df = pd.DataFrame(json_object)
+        print(df)
+
+        df['Angry'] = df['Angry'].astype(str).str.replace('{\'data\':(.*?)count\': ', '')
+        df['Angry'] = df['Angry'].str.replace(',(.*?)}}', '')
+        df['Haha'] = df['Haha'].astype(str).str.replace('{\'data\':(.*?)count\': ', '')
+        df['Haha'] = df['Haha'].str.replace('}}', '')
+        df['Love'] = df['Love'].astype(str).str.replace('{\'data\':(.*?)count\': ', '')
+        df['Love'] = df['Love'].str.replace('}}', '')
+        df['Sad'] = df['Sad'].astype(str).str.replace('{\'data\':(.*?)count\': ', '')
+        df['Sad'] = df['Sad'].str.replace(',(.*?)}}', '')
+        df['Wow'] = df['Wow'].astype(str).str.replace('{\'data\':(.*?)count\': ', '')
+        df['Wow'] = df['Wow'].str.replace('}}', '')
+        df['comments'] = df['comments'].astype(str).str.replace('{\'data\':(.*?)count\': ', '')
+        df['comments'] = df['comments'].str.replace(',(.*?)}}', '')
+        df['likes'] = df['likes'].astype(str).str.replace('{\'(.*?)count\':', '')
+        df['likes'] = df['likes'].str.replace(',(.*?)}}', '')
+        df['shares'] = df['shares'].astype(str).str.replace('{\'count\': ', '')
+        df['shares'] = df['shares'].str.replace('}', '')
+        df['date'], df['time'] = df['created_time'].astype(str).str.split('T', 1).str
+        df['time'] = df['time'].str.replace('[+]0000', '')
+        # df.to_csv("Facebook Posts.csv") 
+        
+        print("The END")
+        # print(df)
+
+    except Exception as ex:
+        print(ex)
+
+    
 
 def main():
 

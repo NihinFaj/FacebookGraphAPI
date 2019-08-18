@@ -130,34 +130,34 @@ def connectToFacebook():
         posts = json_object["data"]
         df = pd.DataFrame(posts)
 
-        df['Angry'] = df['Angry'].astype(str).str.replace(
-            '{\'data\':(.*?)count\': ', '')
-        df['Angry'] = df['Angry'].str.replace(',(.*?)}}', '')
-        df['Haha'] = df['Haha'].astype(str).str.replace(
-            '{\'data\':(.*?)count\': ', '')
-        df['Haha'] = df['Haha'].str.replace('}}', '')
-        df['Love'] = df['Love'].astype(str).str.replace(
-            '{\'data\':(.*?)count\': ', '')
-        df['Love'] = df['Love'].str.replace('}}', '')
-        df['Sad'] = df['Sad'].astype(str).str.replace(
-            '{\'data\':(.*?)count\': ', '')
-        df['Sad'] = df['Sad'].str.replace(',(.*?)}}', '')
-        df['Wow'] = df['Wow'].astype(str).str.replace(
-            '{\'data\':(.*?)count\': ', '')
-        df['Wow'] = df['Wow'].str.replace('}}', '')
-        df['comments'] = df['comments'].astype(
-            str).str.replace('{\'data\':(.*?)count\': ', '')
-        df['comments'] = df['comments'].str.replace(',(.*?)}}', '')
-        df['likes'] = df['likes'].astype(
-            str).str.replace('{\'(.*?)count\':', '')
-        df['likes'] = df['likes'].str.replace(',(.*?)}}', '')
-        df['shares'] = df['shares'].astype(str).str.replace('{\'count\': ', '')
-        df['shares'] = df['shares'].str.replace('}', '')
-        df['date'], df['time'] = df['created_time'].astype(
-            str).str.split('T', 1).str
-        df['time'] = df['time'].str.replace('[+]0000', '')
-        df.to_csv("Facebook Posts.csv")
-        # print(df)
+    #     df['Angry'] = df['Angry'].astype(str).str.replace(
+    #         '{\'data\':(.*?)count\': ', '')
+    #     df['Angry'] = df['Angry'].str.replace(',(.*?)}}', '')
+    #     df['Haha'] = df['Haha'].astype(str).str.replace(
+    #         '{\'data\':(.*?)count\': ', '')
+    #     df['Haha'] = df['Haha'].str.replace('}}', '')
+    #     df['Love'] = df['Love'].astype(str).str.replace(
+    #         '{\'data\':(.*?)count\': ', '')
+    #     df['Love'] = df['Love'].str.replace('}}', '')
+    #     df['Sad'] = df['Sad'].astype(str).str.replace(
+    #         '{\'data\':(.*?)count\': ', '')
+    #     df['Sad'] = df['Sad'].str.replace(',(.*?)}}', '')
+    #     df['Wow'] = df['Wow'].astype(str).str.replace(
+    #         '{\'data\':(.*?)count\': ', '')
+    #     df['Wow'] = df['Wow'].str.replace('}}', '')
+    #     df['comments'] = df['comments'].astype(
+    #         str).str.replace('{\'data\':(.*?)count\': ', '')
+    #     df['comments'] = df['comments'].str.replace(',(.*?)}}', '')
+    #     df['likes'] = df['likes'].astype(
+    #         str).str.replace('{\'(.*?)count\':', '')
+    #     df['likes'] = df['likes'].str.replace(',(.*?)}}', '')
+    #     df['shares'] = df['shares'].astype(str).str.replace('{\'count\': ', '')
+    #     df['shares'] = df['shares'].str.replace('}', '')
+    #     df['date'], df['time'] = df['created_time'].astype(
+    #         str).str.split('T', 1).str
+    #     df['time'] = df['time'].str.replace('[+]0000', '')
+    #     df.to_csv("Facebook Posts.csv")
+    #     # print(df)
 
     except Exception as ex:
         print(ex)
@@ -165,12 +165,15 @@ def connectToFacebook():
     return df
 
 # Function to scan each post message for sustainability keywords
+
+
 def checkPostForKeywords():
 
     keywordsList = getSustainabilityKeywords()
     # print(keywords)
 
     facebookPosts = connectToFacebook()
+    df = facebookPosts
     # print(facebookPosts)
 
     postMessages = dict()
@@ -198,7 +201,27 @@ def checkPostForKeywords():
             termu = keywordsList[term_count].encode('utf-8')
             if termu in tw_txtu:
                 print("I contain a relevant Keyword")
-                
+
+                df['Angry'] = df['Angry'].astype(str).str.replace('{\'data\':(.*?)count\': ', '')
+                df['Angry'] = df['Angry'].str.replace(',(.*?)}}', '')
+                df['Haha'] = df['Haha'].astype(str).str.replace('{\'data\':(.*?)count\': ', '')
+                df['Haha'] = df['Haha'].str.replace('}}', '')
+                df['Love'] = df['Love'].astype(str).str.replace('{\'data\':(.*?)count\': ', '')
+                df['Love'] = df['Love'].str.replace('}}', '')
+                df['Sad'] = df['Sad'].astype(str).str.replace('{\'data\':(.*?)count\': ', '')
+                df['Sad'] = df['Sad'].str.replace(',(.*?)}}', '')
+                df['Wow'] = df['Wow'].astype(str).str.replace('{\'data\':(.*?)count\': ', '')
+                df['Wow'] = df['Wow'].str.replace('}}', '')
+                df['comments'] = df['comments'].astype(str).str.replace('{\'data\':(.*?)count\': ', '')
+                df['comments'] = df['comments'].str.replace(',(.*?)}}', '')
+                df['likes'] = df['likes'].astype(str).str.replace('{\'(.*?)count\':', '')
+                df['likes'] = df['likes'].str.replace(',(.*?)}}', '')
+                df['shares'] = df['shares'].astype(str).str.replace('{\'count\': ', '')
+                df['shares'] = df['shares'].str.replace('}', '')
+                df['date'], df['time'] = df['created_time'].astype(str).str.split('T', 1).str
+                df['time'] = df['time'].str.replace('[+]0000', '')
+                df.to_csv("Facebook Posts.csv")
+
                 break
             else:
                 term_count += 1

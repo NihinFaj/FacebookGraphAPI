@@ -214,7 +214,7 @@ def callFacebookAndSaveData(individualId):
         df['shares'] = df['shares'].str.replace('}', '')
         df['date'], df['time'] = df['created_time'].astype(str).str.split('T', 1).str
         df['time'] = df['time'].str.replace('[+]0000', '')
-        # df.to_csv("Facebook Posts.csv") 
+        df.to_csv("Facebook Posts.csv") 
         
         print("The END")
         # print(df)

@@ -1,2 +1,2 @@
-facbook-sdk
+facebook-sdk
 openpyxl

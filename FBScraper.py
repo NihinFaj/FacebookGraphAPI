@@ -79,7 +79,7 @@ def loadConfig():
 # Function that calls Facebook's Graph API to grab all the posts for a particular brand page
 def getPostsForBrand(brandID, token):
   uri="https://graph.facebook.com/v4.0/{}/posts/".format(str(brandID))
-  fields = "id,created_time,message,shares.summary(true).limit(0),comments.summary(true).limit(0),likes.summary(true),reactions.type(LOVE).limit(0).summary(total_count).as(Love),reactions.type(WOW).limit(0).summary(total_count).as(Wow),reactions.type(HAHA).limit(0).summary(total_count).as(Haha),reactions.type(SAD).limit(0).summary(1).as(Sad),reactions.type(ANGRY).limit(0).summary(1).as(Angry)"
+  fields = "id,created_time,message,shares.summary(true).limit(0),comments,likes.summary(true),reactions.type(LOVE).limit(0).summary(total_count).as(Love),reactions.type(WOW).limit(0).summary(total_count).as(Wow),reactions.type(HAHA).limit(0).summary(total_count).as(Haha),reactions.type(SAD).limit(0).summary(1).as(Sad),reactions.type(ANGRY).limit(0).summary(1).as(Angry)"
   url= "{uri}?fields={fields}&access_token={token}&limit={limit}"\
     .format(**{'uri':uri,'fields':fields,'token': str(token), 'limit':50 })
     
@@ -106,6 +106,9 @@ def isRelevant(post,keywords):
 def exportResultsToSCV(results):
   wb = Workbook()
 
+  # List for all post wtih comments
+  postWithComments = []
+
   # set file path
   filePath = filename_root+'/FBOutput.xlsx'
 
@@ -129,9 +132,7 @@ def exportResultsToSCV(results):
   sheet['I1'] = '#sad'
   sheet['J1'] = '#angry'
   sheet['K1'] = 'message'
-  sheet['L1'] = 'shares'
-  sheet['M1'] = 'date'
-  sheet['N1'] = 'time'
+  sheet['L1'] = 'Shares'
 
   # Save data retreived from Facebook in next row
   row = 2
@@ -144,7 +145,10 @@ def exportResultsToSCV(results):
       sheet['A'+str(row)] = brandID
       sheet['B'+str(row)] = post['id']
       sheet['C'+str(row)] = post['created_time']
-      sheet['D'+str(row)] = len(post['comments']['data'])
+      if 'comments' in post:
+        sheet['D'+str(row)] = len(post['comments']['data'])
+      else:
+        sheet['D'+str(row)] = '0'
       sheet['E'+str(row)] = len(post['likes']['data'])
       sheet['F'+str(row)] = post['Love']['summary']['total_count']
       sheet['G'+str(row)] = post['Wow']['summary']['total_count']
@@ -156,16 +160,49 @@ def exportResultsToSCV(results):
         sheet['L'+str(row)] = post['shares']['count']
       else:
         sheet['L'+str(row)] = '0'
-      sheet['M'+str(row)] = 'date'
-      sheet['N'+str(row)] = 'time'
+      if 'comments' in post:
       
+       for comment in post['comments']['data']:
+          # Call function that stores post comments in a different Excel file 
+          postWithComments.append(comment)          
       row = row + 1 
+
+  storePostComments(postWithComments)
+
+  wb.save(filePath)
+
+# Function that store Post comments in an excel file
+def storePostComments(commentDetails):
+
+  wb = Workbook()
+
+  # set file path
+  filePath = filename_root+'/PostComments.xlsx'
+
+  # Save file in the path
+  wb.save(filePath)
+
+  # Load workbook
+  wb = load_workbook(filePath)
+
+  sheet = wb.active
+
+  # Create Headers in created output file in a row
+  sheet['A1'] = 'Post ID'
+  sheet['B1'] = 'Comment Datetime'
+  sheet['C1'] = 'Comment Content'
+
+  row = 2
+  for commentDetail in commentDetails:
+    sheet['A'+str(row)] = commentDetail['id']
+    sheet['B'+str(row)] = commentDetail['created_time']
+    sheet['C'+str(row)] = commentDetail['message']
+    row += 1
 
   wb.save(filePath)
 
 # Function that is called first when the program is executed
 def main():
-
   config = loadConfig()
   
   results = []
@@ -176,6 +213,7 @@ def main():
     posts = getPostsForBrand(brand['id'], config['accessToken'])
 
     for post in posts:
+      # print(post)
       if isRelevant(post, config['keywords']):
         relevantPosts.append(post)
 

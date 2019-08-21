@@ -1,0 +1,2 @@
+facbook-sdk
+openpyxl

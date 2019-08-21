@@ -1,5 +1,8 @@
 #!usr/bin/env python
 # Python Program to mine data from a Brand's Facebook Account
+__author__ = "Nihinlolamiwa Fajemilehin, Timothy Shirgba, Sunnny Shokeen"
+__copyright__ = "Copyright 2019, KITC"
+__version__ = "1.0.2"
 
 import json
 import facebook
@@ -11,6 +14,7 @@ import os.path
 
 filename_root = os.path.abspath(os.path.dirname(__file__))
 
+# Function that gets all sustainability keywords from an excel file and returns in a list
 def getSustainabilityKeywords(filename):
 
     # open the keyword excel workbook
@@ -31,6 +35,7 @@ def getSustainabilityKeywords(filename):
 
     return keywordList
 
+# Function that gets Access Token and Page ID from an Excel file
 def getInputData(filename):
 
     # open the excel input workbook
@@ -60,6 +65,7 @@ def getInputData(filename):
     d['accessToken'] = pageAccessTokenValue
     return d
 
+# Function that calls Input Data and Keywords functions 
 def loadConfig():
   
   input_filename = filename_root + '/FBPage_Input.xlsx'
@@ -70,7 +76,7 @@ def loadConfig():
 
   return config
 
-#uses the Facebook Graph API to grab all the posts for a particular brand page
+# Function that calls Facebook's Graph API to grab all the posts for a particular brand page
 def getPostsForBrand(brandID, token):
   uri="https://graph.facebook.com/v4.0/{}/posts/".format(str(brandID))
   fields = "id,created_time,message,shares.summary(true).limit(0),comments.summary(true).limit(0),likes.summary(true),reactions.type(LOVE).limit(0).summary(total_count).as(Love),reactions.type(WOW).limit(0).summary(total_count).as(Wow),reactions.type(HAHA).limit(0).summary(total_count).as(Haha),reactions.type(SAD).limit(0).summary(1).as(Sad),reactions.type(ANGRY).limit(0).summary(1).as(Angry)"
@@ -84,10 +90,9 @@ def getPostsForBrand(brandID, token):
     json_object = json.loads(data)
   except Exception as ex:
     print(ex)
-  
   return json_object["data"]
 
-#checks to see if the post is relevant
+# Check to see if the post is relevant
 def isRelevant(post,keywords):
   
   for keyword in keywords:
@@ -97,7 +102,7 @@ def isRelevant(post,keywords):
 
   return False
 
-#exports post data to a csv
+# Exports post data to a csv
 def exportResultsToSCV(results):
   wb = Workbook()
 
@@ -158,6 +163,7 @@ def exportResultsToSCV(results):
 
   wb.save(filePath)
 
+# Function that is called first when the program is executed
 def main():
 
   config = loadConfig()

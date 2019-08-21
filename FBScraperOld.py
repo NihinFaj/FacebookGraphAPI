@@ -1,5 +1,10 @@
 #!usr/bin/env python
 # Python Program to mine data from a Brand's Facebook Account
+# Python Program to mine data from a Brand's Facebook Account
+__author__ = "Nihinlolamiwa Fajemilehin, Timothy Shirgba, Sunnny Shokeen"
+__copyright__ = "Copyright 2019, KITC"
+__version__ = "1.0.1"
+
 import json
 import facebook
 # The library needed to read an excel file using Python
